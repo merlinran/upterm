@@ -98,7 +98,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	wsc, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		h.httpError(w, fmt.Errorf("ws upgrade failed"))
+		h.Logger.WithError(err).Error("ws upgrade error")
 		return
 	}
 	wsconn := ws.WrapWSConn(wsc)
