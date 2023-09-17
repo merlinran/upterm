@@ -27,15 +27,16 @@ const (
 )
 
 type Opt struct {
-	SSHAddr    string
-	WSAddr     string
-	NodeAddr   string
-	KeyFiles   []string
-	Hostnames  []string
-	Network    string
-	NetworkOpt []string
-	MetricAddr string
-	Debug      bool
+	SSHAddr              string
+	WSAddr               string
+	NodeAddr             string
+	AllowCustomSessionID bool
+	KeyFiles             []string
+	Hostnames            []string
+	Network              string
+	NetworkOpt           []string
+	MetricAddr           string
+	Debug                bool
 }
 
 func Start(opt Opt) error {
@@ -136,12 +137,13 @@ func Start(opt Opt) error {
 		}
 
 		s := &Server{
-			NodeAddr:        nodeAddr,
-			HostSigners:     hostSigners,
-			Signers:         signers,
-			NetworkProvider: network,
-			Logger:          logger.WithField("com", "server"),
-			MetricsProvider: mp,
+			NodeAddr:             nodeAddr,
+			AllowCustomSessionID: opt.AllowCustomSessionID,
+			HostSigners:          hostSigners,
+			Signers:              signers,
+			NetworkProvider:      network,
+			Logger:               logger.WithField("com", "server"),
+			MetricsProvider:      mp,
 		}
 		g.Add(func() error {
 			return s.ServeWithContext(context.Background(), sshln, wsln)
@@ -179,12 +181,13 @@ func parseNetworkOpt(opts []string) NetworkOptions {
 }
 
 type Server struct {
-	NodeAddr        string
-	HostSigners     []ssh.Signer
-	Signers         []ssh.Signer
-	NetworkProvider NetworkProvider
-	MetricsProvider provider.Provider
-	Logger          log.FieldLogger
+	NodeAddr             string
+	AllowCustomSessionID bool
+	HostSigners          []ssh.Signer
+	Signers              []ssh.Signer
+	NetworkProvider      NetworkProvider
+	MetricsProvider      provider.Provider
+	Logger               log.FieldLogger
 
 	sshln net.Listener
 	wsln  net.Listener
@@ -294,11 +297,12 @@ func (s *Server) ServeWithContext(ctx context.Context, sshln net.Listener, wsln 
 		}
 
 		sshd := sshd{
-			SessionRepo:         sessRepo,
-			HostSigners:         s.HostSigners, // TODO: use different host keys
-			NodeAddr:            s.NodeAddr,
-			SessionDialListener: sessionDialListener,
-			Logger:              s.Logger.WithField("com", "sshd"),
+			SessionRepo:          sessRepo,
+			HostSigners:          s.HostSigners, // TODO: use different host keys
+			NodeAddr:             s.NodeAddr,
+			AllowCustomSessionID: s.AllowCustomSessionID,
+			SessionDialListener:  sessionDialListener,
+			Logger:               s.Logger.WithField("com", "sshd"),
 		}
 		g.Add(func() error {
 			return sshd.Serve(ln)

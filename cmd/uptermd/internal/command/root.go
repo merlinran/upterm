@@ -10,15 +10,16 @@ import (
 )
 
 var (
-	flagSSHAddr     string
-	flagWSAddr      string
-	flagNodeAddr    string
-	flagPrivateKeys []string
-	flagHostnames   []string
-	flagNetwork     string
-	flagNetworkOpts []string
-	flagMetricAddr  string
-	flagDebug       bool
+	flagSSHAddr              string
+	flagWSAddr               string
+	flagNodeAddr             string
+	flagAllowCustomSessionID bool
+	flagPrivateKeys          []string
+	flagHostnames            []string
+	flagNetwork              string
+	flagNetworkOpts          []string
+	flagMetricAddr           string
+	flagDebug                bool
 )
 
 func Root(logger log.FieldLogger) *cobra.Command {
@@ -32,6 +33,7 @@ func Root(logger log.FieldLogger) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&flagSSHAddr, "ssh-addr", "", utils.DefaultLocalhost("2222"), "ssh server address")
 	cmd.PersistentFlags().StringVarP(&flagWSAddr, "ws-addr", "", "", "websocket server address")
 	cmd.PersistentFlags().StringVarP(&flagNodeAddr, "node-addr", "", "", "node address")
+	cmd.PersistentFlags().BoolVarP(&flagAllowCustomSessionID, "allow-custom-session-id", "", false, "if true, respect the custom session ID given by the hosts")
 	cmd.PersistentFlags().StringSliceVarP(&flagPrivateKeys, "private-key", "", nil, "server private key")
 	cmd.PersistentFlags().StringSliceVarP(&flagHostnames, "hostname", "", nil, "server hostname for public-key authentication certificate principals. If empty, public-key authentication is used instead.")
 
@@ -49,15 +51,16 @@ type rootCmd struct {
 
 func (cmd *rootCmd) Run(c *cobra.Command, args []string) error {
 	opt := server.Opt{
-		SSHAddr:    flagSSHAddr,
-		WSAddr:     flagWSAddr,
-		NodeAddr:   flagNodeAddr,
-		KeyFiles:   flagPrivateKeys,
-		Hostnames:  flagHostnames,
-		Network:    flagNetwork,
-		NetworkOpt: flagNetworkOpts,
-		MetricAddr: flagMetricAddr,
-		Debug:      flagDebug,
+		SSHAddr:              flagSSHAddr,
+		WSAddr:               flagWSAddr,
+		NodeAddr:             flagNodeAddr,
+		AllowCustomSessionID: flagAllowCustomSessionID,
+		KeyFiles:             flagPrivateKeys,
+		Hostnames:            flagHostnames,
+		Network:              flagNetwork,
+		NetworkOpt:           flagNetworkOpts,
+		MetricAddr:           flagMetricAddr,
+		Debug:                flagDebug,
 	}
 
 	return server.Start(opt)

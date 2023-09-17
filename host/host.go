@@ -151,6 +151,7 @@ func (cb hostKeyCallback) appendHostLine(isCert bool, hostname, remote string, k
 
 type Host struct {
 	Host                   string
+	ForceSessionID         string // when set, ask the server to always use this session ID
 	KeepAliveDuration      time.Duration
 	Command                []string
 	ForceCommand           []string
@@ -187,6 +188,7 @@ func (c *Host) Run(ctx context.Context) error {
 	logger.Info("Etablishing reverse tunnel")
 	rt := internal.ReverseTunnel{
 		Host:              u,
+		ForceSessionID:    c.ForceSessionID,
 		Signers:           c.Signers,
 		HostKeyCallback:   c.HostKeyCallback,
 		AuthorizedKeys:    c.AuthorizedKeys,

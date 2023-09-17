@@ -26,6 +26,7 @@ type ReverseTunnel struct {
 	*ssh.Client
 
 	Host              *url.URL
+	ForceSessionID    string // when set, ask the server to always use this session ID
 	Signers           []ssh.Signer
 	AuthorizedKeys    []ssh.PublicKey
 	KeepAliveDuration time.Duration
@@ -128,6 +129,9 @@ func (c *ReverseTunnel) createSession(user string, hostPublicKeys [][]byte, clie
 		HostUser:             user,
 		HostPublicKeys:       hostPublicKeys,
 		ClientAuthorizedKeys: clientAuthorizedKeys,
+	}
+	if c.ForceSessionID != "" {
+		req.ForceSessionID = &c.ForceSessionID
 	}
 	b, err := proto.Marshal(req)
 	if err != nil {

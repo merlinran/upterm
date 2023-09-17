@@ -18,16 +18,13 @@ var (
 	serverShutDownDeadline = 1 * time.Second
 )
 
-type ServerInfo struct {
-	NodeAddr string
-}
-
 type sshd struct {
-	SessionRepo         *sessionRepo
-	HostSigners         []gossh.Signer
-	NodeAddr            string
-	SessionDialListener SessionDialListener
-	Logger              log.FieldLogger
+	SessionRepo          *sessionRepo
+	HostSigners          []gossh.Signer
+	NodeAddr             string
+	AllowCustomSessionID bool // allow the hosts specifying the session ID.
+	SessionDialListener  SessionDialListener
+	Logger               log.FieldLogger
 
 	server *ssh.Server
 	mux    sync.Mutex
@@ -107,8 +104,18 @@ func (s *sshd) createSessionHandler(ctx ssh.Context, srv *ssh.Server, req *gossh
 		return false, []byte(err.Error())
 	}
 
+	var sessID string
+	if sessReq.ForceSessionID != nil {
+		if !s.AllowCustomSessionID {
+			return false, []byte("Force session ID is disallowed")
+		}
+		sessID = *sessReq.ForceSessionID
+		s.SessionRepo.Delete(sessID)
+	} else {
+		sessID = utils.GenerateSessionID()
+	}
 	sess, err := newSession(
-		utils.GenerateSessionID(),
+		sessID,
 		sessReq.HostUser,
 		sessReq.HostPublicKeys,
 		sessReq.ClientAuthorizedKeys,

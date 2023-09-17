@@ -23,6 +23,7 @@ import (
 
 var (
 	flagServer             string
+	flagForceSessionID     string
 	flagForceCommand       string
 	flagPrivateKeys        []string
 	flagKnownHostsFilename string
@@ -64,6 +65,7 @@ func hostCmd() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVarP(&flagServer, "server", "", "ssh://uptermd.upterm.dev:22", "upterm server address (required), supported protocols are ssh, ws, or wss.")
+	cmd.PersistentFlags().StringVarP(&flagForceSessionID, "force-session-id", "", "", "if set, asks the server to always use this session ID. It requires server to has the flag turned on.")
 	cmd.PersistentFlags().StringVarP(&flagForceCommand, "force-command", "f", "", "force execution of a command and attach its input/output to client's.")
 	cmd.PersistentFlags().StringSliceVarP(&flagPrivateKeys, "private-key", "i", defaultPrivateKeys(homeDir), "private key file for public key authentication against the upterm server")
 	cmd.PersistentFlags().StringVarP(&flagKnownHostsFilename, "known-hosts", "", defaultKnownHost(homeDir), "a file contains the known keys for remote hosts (required).")
@@ -180,6 +182,7 @@ func shareRunE(c *cobra.Command, args []string) error {
 
 	h := &host.Host{
 		Host:                   flagServer,
+		ForceSessionID:         flagForceSessionID,
 		Command:                args,
 		ForceCommand:           forceCommand,
 		Signers:                signers,
